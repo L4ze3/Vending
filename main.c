@@ -11,6 +11,7 @@
 /* macros */
 #define MOD(A, B) (A % B)
 #define REST(A, B) (A / B)
+#define NELEM(A) (sizeof(A) / sizeof(A[0]))
 #define PFAND 0.25
 #define ADD 'a'
 #define SUB 's'
@@ -18,7 +19,16 @@
 #define STOCK "stock.dat"
 
 /* enums */
-enum Money { CENT1, CENT2, CENT5, CENT10, CENT20, CENT50, EURO1, EURO2, EURO5, EURO10, EURO20 };
+/* Cent values of the coins */
+enum { CENT1 = 1,
+       CENT2 = 2,
+       CENT5 = 5,
+       CENT10 = 10,
+       CENT20 = 20,
+       CENT50 = 50,
+       EURO1 = 100, 
+       EURO2 = 200,
+};
 
 /* structs */
 struct Beverage {
@@ -27,7 +37,7 @@ struct Beverage {
     bool pfand;
 };
 
-struct Beverage beverages[] = {
+struct Beverage Beverages[] = {
     {"Wasser",       0.50, true},
     {"Limo",         1.00, true},
     {"Cola",         1.50, true},
@@ -36,7 +46,26 @@ struct Beverage beverages[] = {
     {"Bier",         2.50, true},
 };
 
-float money[] = {
+struct Coin {
+    char name[8];
+    int value;
+};
+
+struct Coin Coins[] = {
+    {"2 Euro ",  EURO2},
+    {"1 Euro ",  EURO1},
+    {"50 Cent", CENT50},
+    {"20 Cent", CENT20},
+    {"10 Cent", CENT10},
+    {"5 Cent ",  CENT5},
+    {"2 Cent ",  CENT2},
+    {"1 Cent ",  CENT1},
+};
+
+struct Coin Stock_coin[8];
+
+/* Valid input */ 
+float Money[] = {
     0.01,
     0.02,
     0.05,
@@ -55,36 +84,22 @@ float beverage_price(int choice);
 void buy(int amount);
 void cashbox(float price, char mode);
 float coin_input();
-bool check_coin(float input);
+bool is_coin(float input);
 bool check_pfand(int choice);
 void pfand(int amount);
 void print_change(float change);
-void stock(int amount)
+void stock(int amount);
 int user_choice();
 
 /* function implementation */
 float beverage_price(int choice)
 {
-    switch (choice) {
-    case 1:
-        return beverages[choice-1].price;
-        break;
-    case 2:
-        return beverages[choice-1].price;
-        break;
-    case 3:
-        return beverages[choice-1].price;
-        break;
-    case 4:
-        return beverages[choice-1].price;
-        break;
-    case 5:
-        return beverages[choice-1].price;
-        break;
-    default:
-        printf("Getränk nicht gefunden\n");
+    int size = NELEM(Beverages);
+    if (choice <= size && choice >= 0)
+        return Beverages[choice-1].price;
+    else
+        printf("Kein Getränk der Nummer %d gefunden.\n", choice);
         exit(0);
-    }
 }
 
 void buy(int amount)
@@ -126,6 +141,7 @@ void cashbox(float price, char mode)
         fprintf(stderr, "Can't open %s\n", CASHBOX);
         exit(1);
     }
+
     float cash;
     fscanf(fp, "%f", &cash);
     if (price > cash) {
@@ -150,14 +166,15 @@ float coin_input()
     do {
         printf("Einwurf: ");
         scanf("%f", &input);
-    } while (!check_coin(input));
+    } while (!is_coin(input));
     return input;
 }
 
-bool check_coin(float input)
+bool is_coin(float input)
 {
-    for (enum Money i = CENT1; i <= EURO20; i++) {
-        if (input == money[i])
+    int size = NELEM(Money);
+    for (int i = 0; i < size; i++) {
+        if (input == Money[i])
             return true;
     }
     printf("So eine Münze gibt es nicht!\n");
@@ -166,7 +183,7 @@ bool check_coin(float input)
 
 bool check_pfand(int choice)
 {
-    if (beverages[choice - 1].pfand)
+    if (Beverages[choice - 1].pfand)
         return true;
     return false;
 }
@@ -189,22 +206,14 @@ void pfand(int amount)
 void print_change(float change)
 {
     int cents = change * 100;
-
-    printf("\n2 EUR:   %d\n", REST(cents, 200));
-    cents = MOD(cents, 200);
-    printf("1 EUR:   %d\n", REST(cents, 100));
-    cents = MOD(cents, 100);
-    printf("50 Cent: %d\n", REST(cents, 50));
-    cents = MOD(cents, 50);
-    printf("20 Cent: %d\n", REST(cents, 20));
-    cents = MOD(cents, 20);
-    printf("10 Cent: %d\n", REST(cents, 10));
-    cents = MOD(cents, 10);
-    printf("5 Cent:  %d\n", REST(cents, 5));
-    cents = MOD(cents, 5);
-    printf("2 Cent:  %d\n", REST(cents, 2));
-    cents = MOD(cents, 2);
-    printf("1 Cent:  %d\n\n", REST(cents, 1));
+    int size = NELEM(Coins);
+    
+    printf("\nWechselgeld:\n");
+    for (int i = 0; i < size; i++) {
+        printf("%s: %d\n", Coins[i].name, REST(cents, Coins[i].value));
+        cents = MOD(cents, Coins[i].value);
+    }
+    printf("\n");
 }
 
 void stock(int amount)
@@ -214,17 +223,15 @@ void stock(int amount)
         fprintf(stderr, "Can't open %s\n", STOCK);
         exit(1);
     }
-
-    
 }
 
 int user_choice()
 {
     int choice;
-    int size = sizeof(beverages) / sizeof(beverages[0]);
+    int size = NELEM(Beverages);
     printf("Wählen Sie Ihre Getränk aus:\n");
     for (int i = 0; i < size; i++) {
-        printf("%d) %s\n", i+1, beverages[i].name);
+        printf("%d) %s\n", i+1, Beverages[i].name);
     }
     printf("> ");
     scanf("%d", &choice);
