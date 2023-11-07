@@ -95,11 +95,12 @@ int user_choice();
 float beverage_price(int choice)
 {
     int size = NELEM(Beverages);
-    if (choice <= size && choice >= 0)
+    if (choice <= size && choice >= 0) {
         return Beverages[choice-1].price;
-    else
+    } else {
         printf("Kein Getränk der Nummer %d gefunden.\n", choice);
         exit(0);
+    }
 }
 
 void buy(int amount)
@@ -148,11 +149,11 @@ void cashbox(float price, char mode)
         printf("Kein Wechselgeld vorhanden. Bitte rufen Sie einen Mitarbeiter\n");
         exit(0);
     }
-    if (mode == 'a') {
+    if (mode == ADD) {
         cash += price;
         fseek(fp, 0, SEEK_SET);
         fprintf(fp, "%.2f", cash);
-    } else if (mode == 's') {
+    } else if (mode == SUB) {
         cash = cash - price;
         fseek(fp, 0, SEEK_SET);
         fprintf(fp, "%.2f", cash);
