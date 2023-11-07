@@ -1,12 +1,13 @@
 /*
  * TODO: 
- * Bestand von Getränke anlegen
+ * Add Stock for Beverages
  *
 */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 /* macros */
 #define MOD(A, B) (A % B)
@@ -62,6 +63,13 @@ struct Coin Coins[] = {
     {"1 Cent ",  CENT1},
 };
 
+struct Stock {
+    char name[32];
+    int amount;
+};
+
+struct Stock Stock;
+
 /* Valid input */ 
 float Money[] = {
     0.01,
@@ -82,11 +90,12 @@ float beverage_price(int choice);
 void buy(int amount);
 void cashbox(float price, char mode);
 bool check_pfand(int choice);
+bool check_stock(int choice);
 float coin_input();
 bool is_coin(float input);
 void pfand(int amount);
 void print_change(float change);
-void stock(int amount);
+void update_stock(int choice, int amount);
 int user_choice();
 
 /* function implementation */
@@ -113,6 +122,11 @@ void buy(int amount)
         if (check_pfand(choice))
             price += PFAND;
     }
+
+    if (check_stock(choice))
+        printf("TRUEE");
+    else 
+        printf("LUTSCH COCK");
 
     printf("Der Preis für Ihre Auswahl beträgt %.2f\n", price);
     input = coin_input();
@@ -166,6 +180,22 @@ bool check_pfand(int choice)
     return false;
 }
 
+bool check_stock(int choice)
+{
+    FILE *fp = fopen(STOCK, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "Can't open %s\n", STOCK);
+        exit(1);
+    }
+
+    while (fscanf(fp, "%s %d", Stock.name, &Stock.amount) != EOF) {
+        if (strcmp(Stock.name, Beverages[choice - 1].name) == 0 && Stock.amount > 0) {
+            return true;
+        }
+    }
+    return false;
+}
+
 float coin_input()
 {
     float input;
@@ -215,10 +245,11 @@ void print_change(float change)
     printf("\n");
 }
 
-void stock(int amount)
+void update_stock(int choice, int amount)
 {
     FILE *fp = fopen(STOCK, "r+");
-    if (fp == NULL) {
+    FILE *tmp = fopen("tmp", "w");
+    if (fp == NULL || tmp == NULL) {
         fprintf(stderr, "Can't open %s\n", STOCK);
         exit(1);
     }
