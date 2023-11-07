@@ -62,8 +62,6 @@ struct Coin Coins[] = {
     {"1 Cent ",  CENT1},
 };
 
-struct Coin Stock_coin[8];
-
 /* Valid input */ 
 float Money[] = {
     0.01,
@@ -83,9 +81,9 @@ float Money[] = {
 float beverage_price(int choice);
 void buy(int amount);
 void cashbox(float price, char mode);
+bool check_pfand(int choice);
 float coin_input();
 bool is_coin(float input);
-bool check_pfand(int choice);
 void pfand(int amount);
 void print_change(float change);
 void stock(int amount);
@@ -161,6 +159,13 @@ void cashbox(float price, char mode)
     fclose(fp);
 }
 
+bool check_pfand(int choice)
+{
+    if (Beverages[choice - 1].pfand)
+        return true;
+    return false;
+}
+
 float coin_input()
 {
     float input;
@@ -179,13 +184,6 @@ bool is_coin(float input)
             return true;
     }
     printf("So eine Münze gibt es nicht!\n");
-    return false;
-}
-
-bool check_pfand(int choice)
-{
-    if (Beverages[choice - 1].pfand)
-        return true;
     return false;
 }
 
